@@ -78,6 +78,17 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
 
+  case T_PGFLT:
+   if(PGROUNDDOWN(rcr2()) <= (TOPSTACK - (myproc()->pageStack * PGSIZE)) && (PGROUNDDOWN(rcr2()) > ((TOPSTACK - (myproc()->pageStack * PGSIZE)) - PGSIZE))){
+    if(allocuvm(myproc()->pgdir, PGROUNDDOWN(rcr2()), TOPSTACK - (myproc()->pageStack * PGSIZE)) == 0){
+     cprintf("case T_PGFLT failed");
+     exit();
+    }
+  }
+
+  myproc()->pageStack = myproc()->pageStack + 1;
+  break;
+
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
@@ -110,3 +121,8 @@ trap(struct trapframe *tf)
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)
     exit();
 }
+
+
+
+
+
